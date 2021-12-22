@@ -75,7 +75,7 @@ export class UserDatabase extends GenericMongoDatabase<ReadUserMessage, CreateUs
 
         try {
             result = await details.insertOne(targetDocument);
-        } catch (e) {
+        } catch (e:any) {
             if (e.code === 11000) {
                 // TODO : there should be a better way to do this but I'm currently running into issues with mongodb not
                 //   returning the index that is being violated. When running tests locally it returns the following
