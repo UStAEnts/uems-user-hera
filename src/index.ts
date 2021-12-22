@@ -1,15 +1,25 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { _ml } from './logging/Log';
-import { UserDatabase } from "./database/UserDatabase";
+import {_ml} from './logging/Log';
+import {UserDatabase} from "./database/UserDatabase";
 import bind from "./Binding";
-import { ConfigurationSchema } from "./ConfigurationTypes";
+import {ConfigurationSchema} from "./ConfigurationTypes";
 
 import CONSTANTS from "./constants/Constants";
-import { LoggedError } from "./error/LoggedError";
-import { launchCheck, RabbitNetworkHandler, tryApplyTrait } from "@uems/micro-builder/build/src";
-import { has, UserMessage as UM, UserResponse as UR, UserMessageValidator, UserResponseValidator } from '@uems/uemscommlib';
-import { MongoClient } from "mongodb";
+import {LoggedError} from "./error/LoggedError";
+import {launchCheck, RabbitNetworkHandler, tryApplyTrait} from "@uems/micro-builder/build/src";
+import {
+    has,
+    UserMessage as UM,
+    UserResponse as UR,
+    UserMessageValidator,
+    UserResponseValidator,
+    DiscoveryMessage,
+    DiscoveryResponse,
+    DiscoveryResponseValidator,
+    DiscoveryMessageValidator
+} from '@uems/uemscommlib';
+import {MongoClient} from "mongodb";
 
 const CONFIG_FILE_LOCATION = process.env.UEMS_HERA_CONFIG_LOCATION ?? path.join(__dirname, '..', '..', 'config', 'configuration.json');
 
@@ -35,9 +45,9 @@ async function launch() {
     let configData;
 
     try {
-        configData = await fs.readFile(CONFIG_FILE_LOCATION, { encoding: 'utf8' });
+        configData = await fs.readFile(CONFIG_FILE_LOCATION, {encoding: 'utf8'});
         __.debug('loaded configuration file');
-    } catch (e) {
+    } catch (e: any) {
         if (e.code === 'ENOENT') {
             __.error('failed to launch: ' + CONSTANTS.messages.NO_CONFIG_FILE);
             process.exitCode = CONSTANTS.codes.NO_CONFIG_FILE;
@@ -53,7 +63,7 @@ async function launch() {
     try {
         configJSON = JSON.parse(configData);
     } catch (e) {
-        __.error('failed to launch: ' + CONSTANTS.messages.INVALID_CONFIG_FILE + ' (invalid JSON)', { e });
+        __.error('failed to launch: ' + CONSTANTS.messages.INVALID_CONFIG_FILE + ' (invalid JSON)', {e});
         process.exitCode = CONSTANTS.codes.INVALID_CONFIG_FILE;
         tryApplyTrait('config', false);
         throw new LoggedError();
@@ -102,30 +112,48 @@ async function launch() {
 
         __.info('database connection enabled');
     } catch (e) {
-        __.error('failed to launch: ' + CONSTANTS.messages.COULD_NOT_CONNECT_TO_DB, { e });
+        __.error('failed to launch: ' + CONSTANTS.messages.COULD_NOT_CONNECT_TO_DB, {e});
         process.exitCode = CONSTANTS.codes.COULD_NOT_CONNECT_TO_DB;
         tryApplyTrait('database', false);
         throw new LoggedError();
     }
 
-    let messenger: RabbitNetworkHandler<UM.UserMessage,
+    let messenger: RabbitNetworkHandler<UM.UserMessage | DiscoveryMessage.DiscoveryDeleteMessage,
         UM.CreateUserMessage,
         UM.DeleteUserMessage,
-        UM.ReadUserMessage,
+        UM.ReadUserMessage | DiscoveryMessage.DiscoveryDeleteMessage,
         UM.UpdateUserMessage,
-        UR.UserReadResponseMessage | UR.UserResponseMessage>;
+        // @ts-ignore
+        UR.UserReadResponseMessage | UR.UserResponseMessage | DiscoveryResponse.DiscoveryDeleteResponse>;
 
     try {
-        messenger = new RabbitNetworkHandler<UM.UserMessage,
+        messenger = new RabbitNetworkHandler<UM.UserMessage | DiscoveryMessage.DiscoveryDeleteMessage,
             UM.CreateUserMessage,
             UM.DeleteUserMessage,
-            UM.ReadUserMessage,
+            UM.ReadUserMessage | DiscoveryMessage.DiscoveryDeleteMessage,
             UM.UpdateUserMessage,
-            UR.UserReadResponseMessage | UR.UserResponseMessage>
+            // @ts-ignore
+            UR.UserReadResponseMessage | UR.UserResponseMessage | DiscoveryResponse.DiscoveryDeleteResponse>
         (
             config.message,
-            (data) => new UserMessageValidator().validate(data),
-            (data) => new UserResponseValidator().validate(data),
+            async (data) => {
+                console.log('got', data);
+                try {
+                    const r = await new UserMessageValidator().validate(data);
+                    if (r) return r;
+                } catch (e) {
+                }
+                return await new DiscoveryMessageValidator().validate(data);
+            },
+            async (data) => {
+                console.log('sending', data);
+                try {
+                    const r = await new UserResponseValidator().validate(data)
+                    if (r) return r;
+                } catch (e) {
+                }
+                return await new DiscoveryResponseValidator().validate(data);
+            },
         );
 
         await new Promise<void>((resolve, reject) => {
@@ -144,7 +172,7 @@ async function launch() {
 
         __.info('message broker enabled');
     } catch (e) {
-        __.error('failed to launch: ' + CONSTANTS.messages.COULD_NOT_CONNECT_TO_AMQPLIB, { e });
+        __.error('failed to launch: ' + CONSTANTS.messages.COULD_NOT_CONNECT_TO_AMQPLIB, {e});
         process.exitCode = CONSTANTS.codes.COULD_NOT_CONNECT_TO_AMQPLIB;
         tryApplyTrait('rabbitmq', false);
         throw new LoggedError();
@@ -158,6 +186,6 @@ async function launch() {
 
 launch().catch((e) => {
     if (!(e instanceof LoggedError)) {
-        __.error('failed to launch: an unknown error was encountered', { e });
+        __.error('failed to launch: an unknown error was encountered', {e});
     }
 })
