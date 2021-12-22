@@ -1,9 +1,9 @@
-import { constants } from "http2";
-import { UserDatabase } from "./database/UserDatabase";
-import { MsgStatus, UserMessage, UserResponse } from "@uems/uemscommlib";
-import { _ml } from "./logging/Log";
-import { RabbitNetworkHandler, tryApplyTrait } from "@uems/micro-builder/build/src";
-import { ClientFacingError } from "./error/ClientFacingError";
+import {constants} from "http2";
+import {UserDatabase} from "./database/UserDatabase";
+import {DiscoveryMessage, DiscoveryResponse, MsgStatus, UserMessage, UserResponse} from "@uems/uemscommlib";
+import {_ml} from "./logging/Log";
+import {RabbitNetworkHandler, tryApplyTrait} from "@uems/micro-builder/build/src";
+import {ClientFacingError} from "./error/ClientFacingError";
 
 const _b = _ml(__filename, 'binding');
 
@@ -97,8 +97,75 @@ async function execute(
     requestTracker.save('success');
 }
 
+async function discover(
+    message: DiscoveryMessage.DiscoverMessage,
+    user: UserDatabase,
+    send: (res: DiscoveryResponse.DiscoveryDeleteResponse) => void,
+) {
+    console.log('Got discovery request', message);
+    const result: DiscoveryResponse.DiscoverResponse = {
+        userID: message.userID,
+        status: MsgStatus.SUCCESS,
+        msg_id: message.msg_id,
+        msg_intention: 'READ',
+        restrict: 0,
+        modify: 0,
+    };
+
+    if (message.assetType === 'user') {
+            result.modify = (await user.query({
+                msg_id: message.msg_id,
+                msg_intention: 'READ',
+                status: 0,
+                userID: 'anonymous',
+                id: message.userID,
+            })).length;
+    }
+
+    send(result);
+    console.log('Sending', result);
+}
+
+
+async function removeDiscover(
+    message: DiscoveryMessage.DeleteMessage,
+    user: UserDatabase,
+    send: (res: DiscoveryResponse.DiscoveryDeleteResponse) => void,
+) {
+    const result: DiscoveryResponse.DeleteResponse = {
+        userID: message.userID,
+        status: MsgStatus.SUCCESS,
+        msg_id: message.msg_id,
+        msg_intention: 'DELETE',
+        restrict: 0,
+        modified: 0,
+        successful: true,
+    };
+
+    if (message.assetType === 'user') {
+        try {
+            result.modified = (await user.delete({
+                msg_id: message.msg_id,
+                msg_intention: 'DELETE',
+                status: 0,
+                userID: 'anonymous',
+                id: message.assetID,
+            })).length;
+            result.successful = true;
+        } catch (e) {
+            result.successful = false;
+        }
+    }
+
+    send(result);
+}
+
 export default function bind(database: UserDatabase, broker: RabbitNetworkHandler<any, any, any, any, any, any>): void {
-    broker.on('query', (message, send) => execute(message, database, send));
+    broker.on('query', async (message, send, routingKey) => {
+        if (routingKey.endsWith('.discover')) await discover(message, database, send);
+        else if (routingKey.endsWith('.delete')) await removeDiscover(message, database, send);
+        else await execute(message, database, send)
+    });
     _b.debug('bound [query] event');
 
     broker.on('delete', (message, send) => execute(message, database, send));
