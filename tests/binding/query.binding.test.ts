@@ -117,7 +117,7 @@ describe('executing query messages query the proper entities', () => {
 
             expect(message.status).toEqual(200);
             done();
-        });
+        }, 'user.details.read');
     })
 
     it('query includes hash on request', async (done) => {
@@ -151,7 +151,7 @@ describe('executing query messages query the proper entities', () => {
 
             expect(message.status).toEqual(200);
             done();
-        });
+        }, 'user.details.read');
     })
 
     it('query includes email on request', async (done) => {
@@ -185,7 +185,7 @@ describe('executing query messages query the proper entities', () => {
 
             expect(message.status).toEqual(200);
             done();
-        });
+        }, 'user.details.read');
     })
 
     it('queries only return internal user properties', async (done) => {
@@ -211,7 +211,7 @@ describe('executing query messages query the proper entities', () => {
             }
 
             done();
-        });
+        }, 'user.details.read');
     })
 
 
