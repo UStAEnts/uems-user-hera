@@ -1,13 +1,13 @@
-import { UserMessage, UserResponse } from "@uems/uemscommlib";
-import { Collection, Db, FilterQuery, ObjectId, UpdateOneOptions, UpdateQuery } from "mongodb";
+import {UserMessage, UserResponse} from "@uems/uemscommlib";
+import {Collection, Db, FilterQuery, ObjectId, UpdateOneOptions, UpdateQuery} from "mongodb";
 import ReadUserMessage = UserMessage.ReadUserMessage;
 import CreateUserMessage = UserMessage.CreateUserMessage;
 import DeleteUserMessage = UserMessage.DeleteUserMessage;
 import UpdateUserMessage = UserMessage.UpdateUserMessage;
 import InternalUser = UserResponse.InternalUser;
-import { union } from "zod";
-import { ClientFacingError } from "../error/ClientFacingError";
-import { GenericMongoDatabase, MongoDBConfiguration } from "@uems/micro-builder/build/src";
+import {union} from "zod";
+import {ClientFacingError} from "../error/ClientFacingError";
+import {GenericMongoDatabase, MongoDBConfiguration} from "@uems/micro-builder/build/src";
 
 export type InDatabaseUser = {
     _id: ObjectId,
@@ -51,9 +51,9 @@ export class UserDatabase extends GenericMongoDatabase<ReadUserMessage, CreateUs
 
         const register = (details: Collection) => {
             void details.createIndexes([
-                { key: { username: 1 }, name: 'unique-username', unique: true },
-                { key: { email: 1 }, name: 'unique-email', unique: true },
-                { key: { uid: 1 }, name: 'unique-uid', unique: true },
+                {key: {username: 1}, name: 'unique-username', unique: true},
+                {key: {email: 1}, name: 'unique-email', unique: true},
+                {key: {uid: 1}, name: 'unique-uid', unique: true},
             ]);
         };
 
@@ -68,14 +68,14 @@ export class UserDatabase extends GenericMongoDatabase<ReadUserMessage, CreateUs
     }
 
     protected async createImpl(create: UserMessage.CreateUserMessage, details: Collection): Promise<string[]> {
-        const { msg_id, msg_intention, status, ...document } = create;
+        const {msg_id, msg_intention, status, ...document} = create;
 
         const targetDocument = createToDb(create);
         let result;
 
         try {
             result = await details.insertOne(targetDocument);
-        } catch (e:any) {
+        } catch (e: any) {
             if (e.code === 11000) {
                 // TODO : there should be a better way to do this but I'm currently running into issues with mongodb not
                 //   returning the index that is being violated. When running tests locally it returns the following
@@ -108,7 +108,7 @@ export class UserDatabase extends GenericMongoDatabase<ReadUserMessage, CreateUs
     }
 
     protected async deleteImpl(remove: UserMessage.DeleteUserMessage, details: Collection): Promise<string[]> {
-        const { id } = remove;
+        const {id} = remove;
         if (typeof (id) !== 'string') throw new ClientFacingError('invalid ID type');
 
         const query = {
@@ -135,7 +135,13 @@ export class UserDatabase extends GenericMongoDatabase<ReadUserMessage, CreateUs
         const find: Record<string, unknown> = {};
 
         if (query.id) {
-            find.uid = query.id;
+            if (typeof (query.id) === 'string') {
+                find.uid = query.id;
+            } else {
+                find.uid = {
+                    $in: query.id,
+                }
+            }
         }
 
         if (query.name) {
@@ -165,11 +171,11 @@ export class UserDatabase extends GenericMongoDatabase<ReadUserMessage, CreateUs
 
         const changes: UpdateQuery<InDatabaseUser> = {
             $set: {
-                ...(update.profile ? { profile: update.profile } : {}),
-                ...(update.username ? { username: update.username } : {}),
-                ...(update.hash ? { hash: update.hash } : {}),
-                ...(update.email ? { email: update.email } : {}),
-                ...(update.name ? { name: update.name } : {}),
+                ...(update.profile ? {profile: update.profile} : {}),
+                ...(update.username ? {username: update.username} : {}),
+                ...(update.hash ? {hash: update.hash} : {}),
+                ...(update.email ? {email: update.email} : {}),
+                ...(update.name ? {name: update.name} : {}),
             }
         }
 

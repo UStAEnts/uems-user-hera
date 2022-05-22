@@ -113,13 +113,13 @@ async function discover(
     };
 
     if (message.assetType === 'user') {
-            result.modify = (await user.query({
-                msg_id: message.msg_id,
-                msg_intention: 'READ',
-                status: 0,
-                userID: 'anonymous',
-                id: message.userID,
-            })).length;
+        result.modify = (await user.query({
+            msg_id: message.msg_id,
+            msg_intention: 'READ',
+            status: 0,
+            userID: 'anonymous',
+            id: message.userID,
+        })).length;
     }
 
     send(result);
