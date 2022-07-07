@@ -46,21 +46,18 @@ describe('executing delete messages delete the proper entities', () => {
             {
                 _id: new ObjectId("56d9bf92f9be48771d6fe5b1"),
                 email: "email one",
-                hash: "hash",
                 name: "name",
                 uid: "uid1",
                 username: "username one",
             }, {
                 _id: new ObjectId("56d9bf92f9be48771d6fe5b2"),
                 email: "email two",
-                hash: "hash",
                 name: "name",
                 uid: "uid2",
                 username: "username two",
             }, {
                 _id: new ObjectId("56d9bf92f9be48771d6fe5b3"),
                 email: "email three",
-                hash: "hash",
                 name: "name",
                 uid: "uid3",
                 username: "username three",
@@ -82,7 +79,6 @@ describe('executing delete messages delete the proper entities', () => {
             id: 'uid1',
 
             email: 'new email',
-            hash: 'new hash',
             name: 'new name',
             profile: 'new profile',
             username: 'new username',
@@ -99,14 +95,12 @@ describe('executing delete messages delete the proper entities', () => {
             msg_id: 0,
             id: 'uid1',
             includeEmail: true,
-            includeHash: true,
         });
 
         // Make sure only one result is given
         await expect(results).toHaveLength(1);
 
         // Check that the data matches
-        await expect(results[0].hash).toEqual('new hash');
         await expect(results[0].email).toEqual('new email');
         await expect(results[0].username).toEqual('new username');
         await expect(results[0].name).toEqual('new name');
@@ -130,14 +124,12 @@ describe('executing delete messages delete the proper entities', () => {
             msg_id: 0,
             id: 'uid1',
             includeEmail: true,
-            includeHash: true,
         });
 
         // Make sure only one result is given
         await expect(results).toHaveLength(1);
 
         // Check that the data matches
-        await expect(results[0].hash).toEqual('hash');
         await expect(results[0].email).toEqual('email one');
         await expect(results[0].username).toEqual('username one');
         await expect(results[0].name).toEqual('name');

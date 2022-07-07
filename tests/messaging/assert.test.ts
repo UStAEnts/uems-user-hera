@@ -12,7 +12,6 @@ const initData = [
     {
         _id: new ObjectId("56d9bf92f9be48771d6fe5b1"),
         email: "email one",
-        hash: "hash one",
         name: "name one",
         uid: "uid one",
         username: "username one",
@@ -69,7 +68,6 @@ describe('executing assert messages asserts the proper entities', () => {
             msg_id: 0,
             id: 'uid one',
             email: 'asserted email',
-            hash: 'asserted hash',
             name: 'asserted name',
             username: 'asserted username',
         });
@@ -101,7 +99,6 @@ describe('executing assert messages asserts the proper entities', () => {
             id: 'uid three',
             username: 'username three',
             name: 'name three',
-            hash: 'hash three',
             email: 'email three',
         });
 

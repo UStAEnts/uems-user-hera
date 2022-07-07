@@ -12,21 +12,18 @@ const initData = [
     {
         _id: new ObjectId("56d9bf92f9be48771d6fe5b1"),
         email: "email one",
-        hash: "hash one",
         name: "name one",
         uid: "uid one",
         username: "username one",
     }, {
         _id: new ObjectId("56d9bf92f9be48771d6fe5b2"),
         email: "email two",
-        hash: "hash two",
         name: "name two",
         uid: "uid two",
         username: "username two",
     }, {
         _id: new ObjectId("56d9bf92f9be48771d6fe5b3"),
         email: "email three",
-        hash: "hash three",
         name: "name three",
         uid: "uid three",
         username: "username three",
@@ -77,7 +74,7 @@ describe('executing query messages query the proper entities', () => {
         await MongoUnit.drop();
     })
 
-    it('query does not include hash or email by default', async () => {
+    it('query does not include email by default', async () => {
         const results = await database.query({
             msg_intention: "READ",
             userID: 'anonymous',
@@ -88,25 +85,9 @@ describe('executing query messages query the proper entities', () => {
         await expect(results).toHaveLength(3);
         await Promise.all(results.map(async (e) => {
             await expect(e.email).toBeUndefined();
-            await expect(e.hash).toBeUndefined();
         }));
     })
 
-    it('query includes hash upon request', async () => {
-        const results = await database.query({
-            msg_intention: "READ",
-            userID: 'anonymous',
-            status: 0,
-            msg_id: 0,
-            includeHash: true,
-        });
-
-        await expect(results).toHaveLength(3);
-        await Promise.all(results.map(async (e) => {
-            await expect(e.email).toBeUndefined();
-            await expect(e).toHaveProperty('hash');
-        }));
-    });
 
     it('query includes email upon request', async () => {
         const results = await database.query({
@@ -120,7 +101,6 @@ describe('executing query messages query the proper entities', () => {
         await expect(results).toHaveLength(3);
         await Promise.all(results.map(async (e) => {
             await expect(e).toHaveProperty('email');
-            await expect(e.hash).toBeUndefined();
         }));
     });
 
@@ -238,7 +218,7 @@ describe('executing query messages query the proper entities', () => {
         });
 
         await Promise.all(results.map(async (e) => {
-            const allowed = ['hash', 'email', 'username', 'name', 'id', 'profile'];
+            const allowed = ['email', 'username', 'name', 'id', 'profile'];
             for (const key of Object.keys(results[0])) {
                 expect(allowed).toContain(key);
             }

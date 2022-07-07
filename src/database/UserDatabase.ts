@@ -12,7 +12,6 @@ import {GenericMongoDatabase, MongoDBConfiguration} from "@uems/micro-builder/bu
 export type InDatabaseUser = {
     _id: ObjectId,
     email: string,
-    hash: string,
     name: string,
     uid: string,
     username: string,
@@ -23,19 +22,17 @@ export type CreateInDatabaseUser = Omit<InDatabaseUser, '_id'>;
 
 const stripUndefined = <T>(data: T): T => Object.fromEntries(Object.entries(data).filter(([, value]) => value !== undefined)) as unknown as T;
 
-const dbToInternal = (data: InDatabaseUser, withHash: boolean, withEmail: boolean): InternalUser => stripUndefined({
+const dbToInternal = (data: InDatabaseUser, withEmail: boolean): InternalUser => stripUndefined({
     username: data.username,
     id: data.uid,
     name: data.name,
     profile: data.profile,
     email: withEmail ? data.email : undefined,
-    hash: withHash ? data.hash : undefined,
 });
 
 const createToDb = (data: CreateUserMessage): CreateInDatabaseUser => stripUndefined({
     name: data.name,
     email: data.email,
-    hash: data.hash,
     uid: data.id,
     username: data.username,
     profile: data.profile,
@@ -161,7 +158,7 @@ export class UserDatabase extends GenericMongoDatabase<ReadUserMessage, CreateUs
         }
 
         return (await details.find(find).toArray())
-            .map((d) => dbToInternal(d, query.includeHash ?? false, query.includeEmail ?? false));
+            .map((d) => dbToInternal(d, query.includeEmail ?? false));
     }
 
     protected async updateImpl(update: UserMessage.UpdateUserMessage, details: Collection): Promise<string[]> {
@@ -173,7 +170,6 @@ export class UserDatabase extends GenericMongoDatabase<ReadUserMessage, CreateUs
             $set: {
                 ...(update.profile ? {profile: update.profile} : {}),
                 ...(update.username ? {username: update.username} : {}),
-                ...(update.hash ? {hash: update.hash} : {}),
                 ...(update.email ? {email: update.email} : {}),
                 ...(update.name ? {name: update.name} : {}),
             }
@@ -208,9 +204,6 @@ export class UserDatabase extends GenericMongoDatabase<ReadUserMessage, CreateUs
                 uid: assert.id,
                 username: assert.username,
             },
-            $setOnInsert: {
-                hash: '',
-            }
         }
 
         const options: UpdateOneOptions = {

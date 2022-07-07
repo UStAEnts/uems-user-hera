@@ -73,12 +73,11 @@ describe('executing create messages create the proper entities', () => {
             userID: 'anonymous',
             status: 0,
             msg_id: 0,
-            hash: 'hash',
-            email: 'email',
-            username: 'username',
-            name: 'name',
             id: 'id',
+            name: 'name',
+            username: 'username',
             profile: 'profile',
+            email: 'email',
         }, (message) => {
             expect(message).toHaveProperty('result');
             expect(message).toHaveProperty('status');

@@ -46,21 +46,18 @@ describe('executing delete messages delete the proper entities', () => {
             {
                 _id: new ObjectId("56d9bf92f9be48771d6fe5b1"),
                 email: "one@b.com",
-                hash: "",
                 name: "name",
                 uid: "uid1",
                 username: "user one",
             }, {
                 _id: new ObjectId("56d9bf92f9be48771d6fe5b2"),
                 email: "two@b.com",
-                hash: "",
                 name: "name",
                 uid: "uid2",
                 username: "user two",
             }, {
                 _id: new ObjectId("56d9bf92f9be48771d6fe5b3"),
                 email: "three@b.com",
-                hash: "",
                 name: "name",
                 uid: "uid3",
                 username: "user three",
@@ -92,7 +89,6 @@ describe('executing delete messages delete the proper entities', () => {
             status: 0,
             msg_id: 0,
             includeEmail: true,
-            includeHash: true,
         });
 
         // Make sure only one result is given
@@ -116,7 +112,6 @@ describe('executing delete messages delete the proper entities', () => {
             status: 0,
             msg_id: 0,
             includeEmail: true,
-            includeHash: true,
         });
 
         // Make sure only one result is given
@@ -136,7 +131,6 @@ describe('executing delete messages delete the proper entities', () => {
             status: 0,
             msg_id: 0,
             includeEmail: true,
-            includeHash: true,
         });
 
         // Make sure only one result is given

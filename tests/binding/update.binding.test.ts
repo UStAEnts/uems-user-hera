@@ -91,7 +91,6 @@ describe('executing delete messages delete the proper entities', () => {
             id: 'uid1',
 
             email: 'new email',
-            hash: 'new hash',
             name: 'new name',
             profile: 'new profile',
             username: 'new username',

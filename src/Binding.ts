@@ -30,7 +30,7 @@ async function execute(
             msg_id: message.msg_id,
             userID: message.userID,
             status: MsgStatus.FAIL,
-            result: ['service is not ready'],
+            result: [],
         });
 
         return;
@@ -71,7 +71,7 @@ async function execute(
             msg_id: message.msg_id,
             userID: message.userID,
             status: MsgStatus.FAIL,
-            result: [e instanceof ClientFacingError ? e.message : 'failed to create user due to an internal service error'],
+            result: [],
         });
         requestTracker.save('fail');
         return;

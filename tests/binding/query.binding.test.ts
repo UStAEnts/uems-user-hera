@@ -19,21 +19,18 @@ const initData = [
     {
         _id: new ObjectId("56d9bf92f9be48771d6fe5b1"),
         email: "email one",
-        hash: "hash one",
         name: "name one",
         uid: "uid one",
         username: "username one",
     }, {
         _id: new ObjectId("56d9bf92f9be48771d6fe5b2"),
         email: "email two",
-        hash: "hash two",
         name: "name two",
         uid: "uid two",
         username: "username two",
     }, {
         _id: new ObjectId("56d9bf92f9be48771d6fe5b3"),
         email: "email three",
-        hash: "hash three",
         name: "name three",
         uid: "uid three",
         username: "username three",
@@ -90,7 +87,7 @@ describe('executing query messages query the proper entities', () => {
         await MongoUnit.drop();
     })
 
-    it('query does not include hash or email by default', async (done) => {
+    it('query does not include email by default', async (done) => {
         broker.emit('query', {
             msg_intention: "READ",
             userID: 'anonymous',
@@ -113,40 +110,6 @@ describe('executing query messages query the proper entities', () => {
                 name: "name three",
                 id: "uid three",
                 username: "username three",
-            }]);
-
-            expect(message.status).toEqual(200);
-            done();
-        }, 'user.details.read');
-    })
-
-    it('query includes hash on request', async (done) => {
-        broker.emit('query', {
-            msg_intention: "READ",
-            userID: 'anonymous',
-            status: 0,
-            msg_id: 0,
-            includeHash: true,
-        }, (message) => {
-            expect(message).toHaveProperty('result');
-            expect(message).toHaveProperty('status');
-
-            expect(message.result).toHaveLength(3);
-            expect(message.result).toEqual([{
-                name: "name one",
-                id: "uid one",
-                username: "username one",
-                hash: 'hash one',
-            }, {
-                name: "name two",
-                id: "uid two",
-                username: "username two",
-                hash: 'hash two',
-            }, {
-                name: "name three",
-                id: "uid three",
-                username: "username three",
-                hash: 'hash three',
             }]);
 
             expect(message.status).toEqual(200);
@@ -190,11 +153,10 @@ describe('executing query messages query the proper entities', () => {
 
     it('queries only return internal user properties', async (done) => {
         broker.emit('query', {
-            msg_intention: "READ",
+            msg_intention: "READ",  
             userID: 'anonymous',
             status: 0,
             msg_id: 0,
-            includeHash: true,
             includeEmail: true,
         }, (message) => {
             expect(message).toHaveProperty('result');
@@ -203,7 +165,7 @@ describe('executing query messages query the proper entities', () => {
             expect(message.result).toHaveLength(3);
             expect(message.status).toEqual(200);
 
-            const allowed = ['hash', 'email', 'username', 'name', 'id', 'profile'];
+            const allowed = ['email', 'username', 'name', 'id', 'profile'];
             for (const entry of message.result) {
                 for (const key of Object.keys(entry)) {
                     expect(allowed).toContain(key);

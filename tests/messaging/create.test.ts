@@ -52,7 +52,6 @@ describe('executing create messages create the proper entities', () => {
             userID: 'anonymous',
             status: 0,
             msg_id: 0,
-            hash: 'hash',
             email: 'email',
             username: 'username',
             name: 'name',
@@ -71,14 +70,12 @@ describe('executing create messages create the proper entities', () => {
             status: 0,
             msg_id: 0,
             includeEmail: true,
-            includeHash: true,
         });
 
         // Make sure only one result is given
         await expect(results).toHaveLength(1);
 
         // Check that the data matches
-        await expect(results[0].hash).toEqual('hash');
         await expect(results[0].email).toEqual('email');
         await expect(results[0].username).toEqual('username');
         await expect(results[0].name).toEqual('name');
@@ -86,7 +83,7 @@ describe('executing create messages create the proper entities', () => {
         await expect(results[0].profile).toEqual('profile');
 
         // Check that the response has these keys and these keys only
-        await expect(Object.keys(results[0]).sort()).toEqual(['hash', 'email', 'username', 'name', 'id', 'profile'].sort());
+        await expect(Object.keys(results[0]).sort()).toEqual(['email', 'username', 'name', 'id', 'profile'].sort());
     });
 
     it('creating with additional properties will return results without it', async () => {
@@ -95,7 +92,6 @@ describe('executing create messages create the proper entities', () => {
             userID: 'anonymous',
             status: 0,
             msg_id: 0,
-            hash: 'hash',
             email: 'email',
             username: 'username',
             name: 'name',
@@ -123,7 +119,7 @@ describe('executing create messages create the proper entities', () => {
 
         // Check that the response has these keys and these keys only
 
-        const allowed = ['hash', 'email', 'username', 'name', 'id', 'profile'];
+        const allowed = ['email', 'username', 'name', 'id', 'profile'];
         for (const key of Object.keys(results[0])) {
             expect(allowed).toContain(key);
         }
