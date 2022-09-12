@@ -142,15 +142,17 @@ export class UserDatabase extends GenericMongoDatabase<ReadUserMessage, CreateUs
         }
 
         if (query.name) {
-            find.$text = {
-                $search: query.name,
-            };
+            find.name = query.name;
+            // find.$text = {
+            //     $search: query.name,
+            // };
         }
 
         if (query.username) {
-            find.$text = {
-                $search: find.$text ? (`${(find.$text as any).$search} ${query.username}`) : query.username,
-            };
+            find.username = query.username;
+            // find.$text = {
+            //     $search: find.$text ? (`${(find.$text as any).$search} ${query.username}`) : query.username,
+            // };
         }
 
         if (query.email) {
